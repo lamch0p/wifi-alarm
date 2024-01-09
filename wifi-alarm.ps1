@@ -1,7 +1,7 @@
 param(
     [string] $ssid,
-    [int] $pollSeconds = 5,
-    [int] $outageThresholdSeconds = 15,
+    [int] $pollSeconds = 1,
+    [int] $outageThreshold = 15,
     [string] $audioFilename,
     [string] $startTime,
     [string] $endTime,
@@ -10,16 +10,15 @@ param(
 )
 
 function DoAlarm {
-    if ($outageDuration -ge $outageThresholdSeconds ) {
+    if ($outageDuration -ge $outageThreshold ) {
         $currentTime = Get-Date -Format "HH:mm"
         # Check if the current time falls within the specified range
         if (($currentTime -ge $startTime -and $currentTime -le $endTime) -or ($startTime -eq "" -or $endTime -eq "")) {
             $audioFile.Play()
+            return
         }
-        else {
-            $audioFile.Stop()
-        }
-    }   
+    }
+    $audioFile.Stop()
 }
 
 function WriteHost {
@@ -87,12 +86,11 @@ while ($true) {
         $outageDuration += $pollSeconds
     }
     if ($connectedSSID -ne $ssid) {
-        WriteHost -m "WiFi disconnected."
-        WriteHost -m "Outage duration $outageDuration seconds"
-        $wifiDisconnected = $true 
         if (!$outageEvent.Detected) {
             $outageEvent.Detected = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
         }
+        WriteHost -m "WiFi disconnected at $($outageEvent.Detected) ($outageDuration seconds)"
+        $wifiDisconnected = $true 
         DoAlarm
     }
     elseif ($wifiDisconnected) {
@@ -107,6 +105,6 @@ while ($true) {
         $outageEvent = [PSCustomObject]@{ SSID = $null; Detected = $null; Restored = $null; Duration = $null }
         $outageDuration = 0
     }
-    Start-Sleep -Seconds $pollSeconds  # Check every 5 seconds (adjust as needed)
+    Start-Sleep -Seconds $pollSeconds 
 }
 
