@@ -1,7 +1,7 @@
 param(
     [string] $ssid,
     [int] $pollSeconds = 1,
-    [int] $outageThreshold = 15,
+    [int] $outageThreshold = 0,
     [string] $audioFilename,
     [string] $startTime,
     [string] $endTime,
