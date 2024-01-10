@@ -107,4 +107,3 @@ while ($true) {
     }
     Start-Sleep -Seconds $pollSeconds 
 }
-
